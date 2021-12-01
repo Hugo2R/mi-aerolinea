@@ -1,0 +1,42 @@
+[
+	{
+		"name": "Ciudad de México",
+		"id": "MEX",
+		"lat": 20,
+		"lon": -100,
+		"degX": 110,
+		"degY": 0
+	},
+	{
+		"name": "Nueva York",
+		"id": "JFK",
+		"lat": 40,
+		"lon": -75,
+		"degX": 80,
+		"degY": -18
+	},
+	{
+		"name": "Madrid",
+		"id": "MAD",
+		"lat": 40,
+		"lon": -5,
+		"degX": 10,
+		"degY": -20
+	},
+	{
+		"name": "Tokyo",
+		"id": "NRT",
+		"lat": 35,
+		"lon": 140,
+		"degX": -130,
+		"degY": -15
+	},
+	{
+		"name": "Nueva Delhi",
+		"id": "DEL",
+		"lat": 30,
+		"lon": 75,
+		"degX": -65,
+		"degY": -5
+	}
+]

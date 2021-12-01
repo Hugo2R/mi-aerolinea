@@ -1,0 +1,78 @@
+[
+  {
+  	"id": "001",
+  	"sTime": "10:00",
+  	"eTime": "18:45",
+  	"fares": [
+			{
+				"type": "economy",
+				"fare": 1000
+			},
+			{
+				"type": "plus",
+				"fare": 2000
+			},
+			{
+				"type": "business",
+				"fare": 3000
+			}
+  	]
+  },
+  {
+  	"id": "002",
+  	"sTime": "12:00",
+  	"eTime": "20:45",
+  	"fares": [
+			{
+				"type": "economy",
+				"fare": 1500
+			},
+			{
+				"type": "plus",
+				"fare": 2500
+			},
+			{
+				"type": "business",
+				"fare": 3500
+			}
+  	]
+  },
+  {
+  	"id": "003",
+  	"sTime": "14:00",
+  	"eTime": "22:45",
+  	"fares": [
+			{
+				"type": "economy",
+				"fare": 1800
+			},
+			{
+				"type": "plus",
+				"fare": 2800
+			},
+			{
+				"type": "business",
+				"fare": 3800
+			}
+  	]
+  },
+  {
+  	"id": "004",
+  	"sTime": "16:00",
+  	"eTime": "01:45",
+  	"fares": [
+			{
+				"type": "economy",
+				"fare": 800
+			},
+			{
+				"type": "plus",
+				"fare": 1800
+			},
+			{
+				"type": "business",
+				"fare": 2800
+			}
+  	]
+  }
+]
