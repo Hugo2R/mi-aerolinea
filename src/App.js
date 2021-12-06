@@ -3,62 +3,58 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import planetaryjs from './globe'
-import FaresTable from './fares-table'
+import SearchForm from './components/searchForm'
+import FaresTable from './components/fares-table'
+import PassengerForm from './components/passengerForm'
+//import BookingConfirmation from './components/bookingConfirmation'
+import PurchaseConfirmation from './components/purchaseConfirmation'
+
 import { fetchCities } from './reducers/citiesSlice'
 import { fetchFlights, setFlight } from './reducers/flightsSlice'
+import { resetSearchForm } from './reducers/searchFormSlice'
 
 
 function App() {
-  const [origin, setOrigin] = useState({id: ''})
-  const [destin, setDestin] = useState({id: ''})
-  const [pssngr, setPssngr] = useState([1, 0, 0])
   const [step, setStep] = useState('route')
   const [tab, setTab] = useState(0)
-  const [cart, setCart] = useState(JSON.parse(localStorage.cart || '[]')
-)
+  const [cart, setCart] = useState(JSON.parse(localStorage.cart || '[]'))
   const canvas = useRef()
-  const aside = useRef()
   const planet = useRef()
   const ping = useRef()
   const dispatch = useDispatch()
-  const cities = useSelector(store => store.cities)
   const flight = useSelector(store => store.flights.flight)
+  const { origin, destination, passengers } = useSelector(store => store.searchForm)
 
-  const citiesFilter = city => c => c.id !== city.id
-  const citiesMapper = c => <option key={c.id} value={c.id}>{c.name}</option>
   const bookingsMapper = (b, onClick, onClickDel) => <li key={b.cartId} onClick={() => onClick(b)}>
     <div>
-      <p>{`${b.origin.name} - ${b.destin.name}`}</p>
+      <p>{`${b.origin.name} - ${b.destination.name}`}</p>
       <p>{`Vuelo: ${b.id} / Categoría:  ${b.type}`}</p>
     </div>
     <div>
     <p>{`Total: $${b.total}.`}<sup>00</sup></p>
     </div>
     <div>
-      <p onClick={() => onClickDel(b.cartId)}>✖︎</p>
+      <p onClick={(e) => {e.stopPropagation(); onClickDel(b.cartId)}}>✖︎</p>
     </div>
   </li>
 
   useEffect(() => {
     dispatch(fetchCities)
-    if (canvas.current){
+    if (canvas.current && tab === 0){
       planet.current = planetaryjs(canvas.current)
     }
 
     return () => {
       clearInterval(ping.current)
     }
-  }, [dispatch])
+  }, [dispatch, tab])
 
-  const onCityChange = (e, update) => {
-    const [city] = cities.filter(c => c.id === e.target.value)
-    update(city)
+  const onCityChange = city => {
     pingCity(city)  
   }
 
-  const onSubmit = e => {
-    e.preventDefault()
-    pingCity(destin)
+  const onSearchSubmit = () => {
+    pingCity(destination)
     setStep('flights')
     dispatch(fetchFlights)
   }
@@ -80,18 +76,6 @@ function App() {
     clearInterval(ping.current)
   }
 
-  const chgPssngr = (index, event) => {
-    const tmp = [...pssngr]
-    
-    tmp[index] = parseInt(Number(event.target.value)) || 0
-
-    const total = tmp.reduce((a, v) => a + v, 0)
-
-    if (total < 10 && total > 0) {
-      setPssngr(tmp)
-    }
-  }
-
   const onClickBooked = () => {
     setStep('booked')
     localStorage.cart = JSON.stringify([
@@ -100,8 +84,8 @@ function App() {
         cartId: Date.now(),
         ...flight,
         origin: { id: origin.id, name: origin.name},
-        destin: { id: destin.id, name: destin.name},
-        pssngr,
+        destination: { id: destination.id, name: destination.name},
+        passengers,
         total: totalPssngr * flight.fare
       }
     ])
@@ -112,22 +96,15 @@ function App() {
   const onClickBooking = () => {
     setTab(0)
     setStep('route')
-    setOrigin({id: ''})
-    setDestin({id: ''})
-    setPssngr([1, 0, 0])
+    dispatch(resetSearchForm())
     dispatch(setFlight({}))
     clearInterval(ping.current)
   }
 
-  useEffect(() => {
-    if (canvas.current){
-      planet.current = planetaryjs(canvas.current)
-    }
-  }, [tab])
-
   const onClickCart = () => {
     setTab(1)
     setStep('cart')
+    setFlight({})
   }
 
   const onClickDeleteCart = () => {
@@ -146,7 +123,13 @@ function App() {
     setStep('usrData')
   }
 
-  const totalPssngr =  pssngr.reduce((a,v)=>a+v,0)
+  const onUsrDataSubmit = () => {
+    onClickDeleteBooking(flight.cartId)
+    setStep('purchased')
+    
+  }
+
+  const totalPssngr =  passengers.reduce((a,v)=>a+v,0)
 
   return (
       <div className="App">
@@ -157,38 +140,8 @@ function App() {
             <li><button className={tab === 1 ? 'active' : ''} onClick={onClickCart}>Lista de Viajes</button></li>
           </ul>
         </header>
-        {!tab && <main className={step}>
-          <aside ref={aside}>
-            <form onSubmit={onSubmit}>
-              <label> <span>Origen</span>
-                <select name="origin" placeholder="Selecciona una ciudad"
-                   onChange={e => {onCityChange(e, setOrigin)}} value={origin.id} required>
-                  <option disabled hidden value="">Selecciona una ciudad</option>
-                  {cities.filter(citiesFilter(destin)).map(citiesMapper)}
-                </select>
-              </label>
-              <label> <span>Destino</span>
-                <select name="destin" placeholder="Selecciona una ciudad"
-                  onChange={e => {onCityChange(e, setDestin)}} value={destin.id} required>
-                  <option disabled hidden value="">Selecciona una ciudad</option>
-                  {cities.filter(citiesFilter(origin)).map(citiesMapper)}
-                </select>
-              </label>
-              <fieldset>
-              <legend>Pasajeros</legend>
-              <label><span>Adultos</span>
-                <input type="number" min="0" max="9" value={pssngr[0]} onChange={e => chgPssngr(0, e)} />
-              </label>
-              <label><span>Niños</span>
-                <input type="number" min="0" max="9" value={pssngr[1]} onChange={e => chgPssngr(1, e)} />
-              </label>
-              <label><span>Bebés</span>
-                <input type="number" min="0" max="9" value={pssngr[2]} onChange={e => chgPssngr(2, e)} />
-              </label>
-              </fieldset>
-              <button type="submit">Buscar vuelos</button>
-            </form>
-          </aside>
+        {tab === 0 && <main className={step}>
+          <SearchForm {...{onCityChange, onSearchSubmit}} />
           <section>
             <canvas ref={canvas} width="500" height="500" />
             <div className={step === 'flights' ? 'fares' : ''}>
@@ -197,15 +150,15 @@ function App() {
             </div>
             { !!flight.id && <button onClick={onClickBooked}>Reservar</button> }
           </section>
-          <section className={ step ==='booked' ? 'details' : ''}>
+          <section className="details">
             <h2>Tu vuelo ha sido reservado</h2>
-            <p>{`${origin.name} - ${destin.name}`}</p>
+            <p>{`${origin.name} - ${destination.name}`}</p>
             <p>{`Vuelo: ${flight.id} / Categoría:  ${flight.type}`}</p>
             <p>{`$${flight.fare}.00 x ${totalPssngr} pasajero${totalPssngr>1?'s':''}`}</p>
             <p style={{fontSize: '1.5rem', fontWeight: 'bold'}}>{`Total: $${flight.fare * totalPssngr}.`}<sup>00</sup></p>
           </section>
         </main>}
-        {!!tab && <main className={step}>
+        {tab === 1 && <main className={step}>
           <section>
             <h2>Lista de viajes reservados</h2>
             <div>
@@ -216,7 +169,8 @@ function App() {
               {cart.map(b => bookingsMapper(b, onClickBookingItem, onClickDeleteBooking))}
             </ul>
           </section>
-          <section></section>
+          <PassengerForm onUsrDataSubmit={onUsrDataSubmit}/>
+          {!!flight.origin && <PurchaseConfirmation />}
         </main>}
       </div>
   );

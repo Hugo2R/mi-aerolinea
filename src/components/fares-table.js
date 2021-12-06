@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux'
-import { setFlight } from './reducers/flightsSlice'
+import { setFlight } from '../reducers/flightsSlice'
 
 const faresMapper = (f, id, dispatch) => 
 	<td
